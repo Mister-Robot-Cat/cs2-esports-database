@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS2 ER Diagram</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1d2330; --muted: #5b6475; --accent: #de9b35; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font-family: "Segoe UI", system-ui, sans-serif; }
+  header { padding: 24px 24px 8px; border-bottom: 3px solid var(--accent); }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p  { margin: 0; color: var(--muted); font-size: 14px; }
+  .wrap { padding: 16px; overflow-x: auto; }
+  .mermaid { min-width: 1100px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Counter-Strike 2 — ER diaqramı</h1>
+  <p>12 cədvəl · PostgreSQL · PK — birincili açar, FK — xarici açar, UK — unikal sahə</p>
+</header>
+<div class="wrap">
+<pre class="mermaid">
+erDiagram
+    countries   ||--o{ teams              : "əsas ölkə"
+    countries   ||--o{ players            : "vətəndaşlıq"
+    countries   ||--o{ tournaments        : "keçirildiyi ölkə"
+    teams       |o--o{ players            : "heyət"
+    weapons     ||--o{ skins              : "skin"
+    rarities    ||--o{ skins              : "nadirlik"
+    players     ||--o{ player_skins       : "inventar"
+    skins       ||--o{ player_skins       : "sahibi"
+    tournaments ||--o{ matches            : "matçlar"
+    teams       ||--o{ matches            : "team1 / team2 / qalib"
+    matches     ||--|{ match_maps         : "xəritələr"
+    maps        ||--o{ match_maps         : "oynanılıb"
+    teams       |o--o{ match_maps         : "seçib (pick)"
+    match_maps  ||--|{ player_match_stats : "statistika"
+    players     ||--o{ player_match_stats : "oyunçu"
+    teams       ||--o{ player_match_stats : "komanda"
+
+    countries {
+        int     country_id PK
+        varchar name UK
+        char    iso_code UK
+    }
+    teams {
+        int      team_id PK
+        varchar  name UK
+        varchar  tag
+        int      country_id FK
+        smallint founded_year
+        int      world_rank UK
+    }
+    players {
+        int      player_id PK
+        varchar  nickname UK
+        varchar  full_name
+        smallint birth_year
+        int      country_id FK
+        int      team_id FK "NULL = free agent"
+        varchar  role
+    }
+    maps {
+        int     map_id PK
+        varchar name UK
+        varchar code UK
+        boolean is_active_duty
+    }
+    weapons {
+        int     weapon_id PK
+        varchar name UK
+        varchar category
+        varchar side
+        int     price
+        int     damage
+        int     magazine_size
+    }
+    rarities {
+        int      rarity_id PK
+        varchar  name UK
+        char     color_hex
+        smallint tier_order UK
+    }
+    skins {
+        int     skin_id PK
+        int     weapon_id FK
+        int     rarity_id FK
+        varchar name
+        numeric market_price
+    }
+    player_skins {
+        int     player_id PK, FK
+        int     skin_id PK, FK
+        numeric float_value
+        boolean is_stattrak
+        date    acquired_on
+    }
+    tournaments {
+        int     tournament_id PK
+        varchar name UK
+        varchar organizer
+        varchar city
+        int     country_id FK
+        char    tier
+        boolean is_major
+        date    start_date
+        date    end_date
+        numeric prize_pool
+    }
+    matches {
+        int      match_id PK
+        int      tournament_id FK
+        varchar  stage
+        date     match_date
+        smallint best_of
+        int      team1_id FK
+        int      team2_id FK
+        int      winner_team_id FK
+    }
+    match_maps {
+        int      match_map_id PK
+        int      match_id FK
+        int      map_id FK
+        smallint map_number
+        int      picked_by_team_id FK "NULL = decider"
+        smallint team1_score
+        smallint team2_score
+    }
+    player_match_stats {
+        int      match_map_id PK, FK
+        int      player_id PK, FK
+        int      team_id FK
+        smallint kills
+        smallint deaths
+        smallint assists
+        smallint headshots
+        numeric  adr
+    }
+</pre>
+</div>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "default", er: { layoutDirection: "TB" } });
+</script>
+</body>
+</html>
